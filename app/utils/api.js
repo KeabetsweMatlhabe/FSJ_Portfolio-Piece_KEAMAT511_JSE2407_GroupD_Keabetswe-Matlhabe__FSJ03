@@ -19,7 +19,7 @@ export async function fetchProducts({ page = 1, limit = 20, search = '', categor
   }
 
   try {
-    const response = await fetch(`https://next-ecommerce-api.vercel.app/products?${params.toString()}`);
+    const response = await fetch(`/api/products?${params.toString()}`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch products');

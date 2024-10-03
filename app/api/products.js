@@ -1,21 +1,22 @@
-import { db } from '../../firebaseConfig';  
-import { collection, query, where, orderBy, limit, startAfter, getDocs } from "firebase/firestore";
-import Fuse from 'fuse.js'; // For searching
+// /pages/api/products.js
+import { db } from '../../lib/firebase';
+import { collection, query, where, orderBy, limit as fbLimit, getDocs } from 'firebase/firestore';
+import Fuse from 'fuse.js';
 
 export default async function handler(req, res) {
   const { page = 1, limit = 20, search = '', category = '', sort = '' } = req.query;
-  const productsRef = collection(db, 'products');
   const offset = (page - 1) * limit;
-
+  const productsRef = collection(db, 'products');
+  
   try {
-    let q = query(productsRef, limit(Number(limit)));
+    let q = query(productsRef, fbLimit(Number(limit)));
 
-    // Add category filtering
+    // Filter by category
     if (category) {
       q = query(productsRef, where('category', '==', category));
     }
 
-    // Sorting by price
+    // Sort by price
     if (sort === 'price-asc') {
       q = query(q, orderBy('price', 'asc'));
     } else if (sort === 'price-desc') {
@@ -33,6 +34,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ products, page, limit });
   } catch (error) {
+    console.error('Error fetching products:', error);
     res.status(500).json({ message: 'Error fetching products', error: error.message });
   }
 }
