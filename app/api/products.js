@@ -1,5 +1,5 @@
 // /pages/api/products.js
-import { db } from '../../lib/firebase';
+import { db } from '../../firebaseConfig';
 import { collection, query, where, orderBy, limit as fbLimit, getDocs } from 'firebase/firestore';
 import Fuse from 'fuse.js';
 
