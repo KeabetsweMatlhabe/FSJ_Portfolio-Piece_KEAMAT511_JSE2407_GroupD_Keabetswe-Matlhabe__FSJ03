@@ -1,4 +1,4 @@
-import { db } from '../../lib/firebase';  // Assume Firebase is initialized in this file
+import { db } from '../../firebaseConfig';  
 import { collection, query, where, orderBy, limit, startAfter, getDocs } from "firebase/firestore";
 import Fuse from 'fuse.js'; // For searching
 
