@@ -1,13 +1,20 @@
-// /pages/api/products.js
-import { db } from '../../firebaseConfig';
+import { db } from '../../../firebaseConfig'; // Ensure the path is correct
 import { collection, query, where, orderBy, limit as fbLimit, getDocs } from 'firebase/firestore';
 import Fuse from 'fuse.js';
+import { NextResponse } from 'next/server';
 
-export default async function handler(req, res) {
-  const { page = 1, limit = 20, search = '', category = '', sort = '' } = req.query;
+// Handle GET request
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const page = parseInt(searchParams.get('page')) || 1;
+  const limit = parseInt(searchParams.get('limit')) || 20;
+  const search = searchParams.get('search') || '';
+  const category = searchParams.get('category') || '';
+  const sort = searchParams.get('sort') || '';
+
   const offset = (page - 1) * limit;
   const productsRef = collection(db, 'products');
-  
+
   try {
     let q = query(productsRef, fbLimit(Number(limit)));
 
@@ -24,17 +31,17 @@ export default async function handler(req, res) {
     }
 
     const querySnapshot = await getDocs(q);
-    let products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let products = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     // Apply search filtering using Fuse.js
     if (search) {
       const fuse = new Fuse(products, { keys: ['title'], threshold: 0.3 });
-      products = fuse.search(search).map(result => result.item);
+      products = fuse.search(search).map((result) => result.item);
     }
 
-    res.status(200).json({ products, page, limit });
+    return NextResponse.json({ products, page, limit });
   } catch (error) {
     console.error('Error fetching products:', error);
-    res.status(500).json({ message: 'Error fetching products', error: error.message });
+    return NextResponse.json({ message: 'Error fetching products', error: error.message }, { status: 500 });
   }
 }
