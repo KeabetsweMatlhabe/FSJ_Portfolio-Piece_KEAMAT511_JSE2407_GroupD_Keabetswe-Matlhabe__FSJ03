@@ -1,5 +1,5 @@
 import { db } from '../../../firebaseConfig'; // Ensure the path is correct
-import { collection, query, where, orderBy, limit as fbLimit, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit as fbLimit, startAfter, getDocs } from 'firebase/firestore';
 import Fuse from 'fuse.js';
 import { NextResponse } from 'next/server';
 
@@ -12,15 +12,14 @@ export async function GET(req) {
   const category = searchParams.get('category') || '';
   const sort = searchParams.get('sort') || '';
 
-  const offset = (page - 1) * limit;
   const productsRef = collection(db, 'products');
 
   try {
-    let q = query(productsRef, fbLimit(Number(limit)));
+    let q = query(productsRef);
 
     // Filter by category
     if (category) {
-      q = query(productsRef, where('category', '==', category));
+      q = query(q, where('category', '==', category));
     }
 
     // Sort by price
@@ -30,8 +29,9 @@ export async function GET(req) {
       q = query(q, orderBy('price', 'desc'));
     }
 
-    const querySnapshot = await getDocs(q);
-    let products = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    // Fetch all products to filter/search
+    const allProductsSnapshot = await getDocs(q);
+    let products = allProductsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     // Apply search filtering using Fuse.js
     if (search) {
@@ -39,7 +39,13 @@ export async function GET(req) {
       products = fuse.search(search).map((result) => result.item);
     }
 
-    return NextResponse.json({ products, page, limit });
+    // Handle pagination
+    const totalProducts = products.length;
+    const totalPages = Math.ceil(totalProducts / limit);
+    const offset = (page - 1) * limit;
+    const paginatedProducts = products.slice(offset, offset + limit);
+
+    return NextResponse.json({ products: paginatedProducts, totalPages });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json({ message: 'Error fetching products', error: error.message }, { status: 500 });

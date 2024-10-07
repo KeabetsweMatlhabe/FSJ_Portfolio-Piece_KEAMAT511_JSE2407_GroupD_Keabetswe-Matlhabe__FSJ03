@@ -14,11 +14,18 @@ export default function ProductGrid() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 20;
+  const [categories, setCategories] = useState([]);
+
+  // Fetch product categories
+  const fetchCategoriesData = async () => {
+    const data = await fetchCategories();
+    setCategories(data);
+  };
 
   // Fetch products with filters
   const fetchFilteredProducts = async () => {
     try {
-      setLoading(true);  // Set loading state before fetching data
+      setLoading(true);
       const data = await fetchProducts({
         search: searchTerm,
         category,
@@ -27,21 +34,54 @@ export default function ProductGrid() {
         limit: itemsPerPage,
       });
       setProducts(data.products || []);
-      setTotalPages(data.totalPages || 1);
+      setTotalPages(data.totalPages || 1);  // Ensure this value is returned from the API
     } catch (err) {
       setError('Failed to fetch products');
     } finally {
-      setLoading(false);  // Stop loading once data is fetched
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    fetchCategoriesData();
     fetchFilteredProducts();
   }, [searchTerm, category, sortOption, currentPage]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6">All Products</h2>
+
+      {/* Filter and search inputs */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border p-2 rounded-md"
+        />
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="border p-2 rounded-md ml-2"
+        >
+          <option value="">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          className="border p-2 rounded-md ml-2"
+        >
+          <option value="default">Sort by</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+        </select>
+      </div>
 
       {/* Show error message */}
       {error && <p className="text-red-500">{error}</p>}
