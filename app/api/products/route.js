@@ -1,6 +1,5 @@
 import { db } from '../../../firebaseConfig'; // Ensure the path is correct
-import { collection, query, where, orderBy, limit as fbLimit, startAfter, getDocs } from 'firebase/firestore';
-import Fuse from 'fuse.js';
+import { collection, getDocs } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
 // Handle GET request
@@ -15,39 +14,46 @@ export async function GET(req) {
   const productsRef = collection(db, 'products');
 
   try {
-    let q = query(productsRef);
-
-    // Filter by category
-    if (category) {
-      q = query(q, where('category', '==', category));
-    }
-
-    // Sort by price
-    if (sort === 'price-asc') {
-      q = query(q, orderBy('price', 'asc'));
-    } else if (sort === 'price-desc') {
-      q = query(q, orderBy('price', 'desc'));
-    }
-
-    // Fetch all products to filter/search
-    const allProductsSnapshot = await getDocs(q);
+    // Fetch all products to extract categories
+    const allProductsSnapshot = await getDocs(productsRef);
     let products = allProductsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    // Apply search filtering using Fuse.js
-    if (search) {
-      const fuse = new Fuse(products, { keys: ['title'], threshold: 0.3 });
-      products = fuse.search(search).map((result) => result.item);
+    // Extract unique categories
+    const categories = [...new Set(products.map(product => product.category))];
+
+    // Filter by category if provided
+    if (category) {
+      products = products.filter((product) => product.category === category);
     }
 
-    // Handle pagination
+    // Apply search filtering if search term is provided
+    if (search) {
+      products = products.filter((product) =>
+        product.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Sort products by price if sort option is provided
+    if (sort === 'price-asc') {
+      products = products.sort((a, b) => a.price - b.price);
+    } else if (sort === 'price-desc') {
+      products = products.sort((a, b) => b.price - a.price);
+    }
+
+    // Pagination logic
     const totalProducts = products.length;
     const totalPages = Math.ceil(totalProducts / limit);
     const offset = (page - 1) * limit;
     const paginatedProducts = products.slice(offset, offset + limit);
 
-    return NextResponse.json({ products: paginatedProducts, totalPages });
+    // Return the paginated products and available categories
+    return NextResponse.json({ 
+      products: paginatedProducts, 
+      totalPages, 
+      categories  // Send categories to the frontend
+    });
   } catch (error) {
-    console.error('Error fetching products:', error);
-    return NextResponse.json({ message: 'Error fetching products', error: error.message }, { status: 500 });
+    console.error('Error fetching products and categories:', error);
+    return NextResponse.json({ message: 'Error fetching products and categories', error: error.message }, { status: 500 });
   }
 }

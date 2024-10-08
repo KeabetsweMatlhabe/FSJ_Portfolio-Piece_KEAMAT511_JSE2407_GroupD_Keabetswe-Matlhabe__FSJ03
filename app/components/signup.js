@@ -1,20 +1,18 @@
-
+// components/SignUp.js
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../firebaseConfig";
+import { signUp } from "../utils/auth";
 
-export default function SignUp() {
+const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      // Redirect or display success message
-    } catch (err) {
-      setError(err.message);
+      await signUp(email, password);
+      // Handle successful signup (redirect, show message, etc.)
+    } catch (error) {
+      console.error("Error signing up:", error.message);
     }
   };
 
@@ -35,7 +33,8 @@ export default function SignUp() {
         required
       />
       <button type="submit">Sign Up</button>
-      {error && <p>{error}</p>}
     </form>
   );
-}
+};
+
+export default SignUp;

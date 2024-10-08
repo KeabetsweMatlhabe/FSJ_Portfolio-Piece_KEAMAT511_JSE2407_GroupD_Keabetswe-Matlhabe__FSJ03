@@ -1,33 +1,34 @@
 // context/authContext.js
-import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../lib/firebaseConfig";
+"use client"; // This line makes this file a Client Component
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../firebaseConfig'; // Adjust the path if necessary
+import { onAuthStateChanged } from 'firebase/auth';
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
     });
+
     return () => unsubscribe();
   }, []);
 
   const logout = async () => {
-    await signOut(auth);
+    await auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, logout, loading }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, logout }}>
+      {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   return useContext(AuthContext);
-}
+};
