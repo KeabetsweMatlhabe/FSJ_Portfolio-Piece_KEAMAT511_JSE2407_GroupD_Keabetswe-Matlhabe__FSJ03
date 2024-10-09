@@ -13,12 +13,12 @@ export default function Header() {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <Link href="/">
-              <Image 
-                src="/logo.png" 
+              <Image
+                src="/logo.png"
                 alt="Store Logo"
-                width={40} 
+                width={40}
                 height={40}
-                className="rounded-full border-2 border-white" 
+                className="rounded-full border-2 border-white"
               />
             </Link>
             <Link href="/">
@@ -59,13 +59,22 @@ export default function Header() {
                   </li>
                 </>
               ) : (
-                <li>
-                  <Link href="/auth/signin">
-                    <span className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200">
-                      Sign In
-                    </span>
-                  </Link>
-                </li>
+                <>
+                  <li>
+                    <Link href="/signin">
+                      <span className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200">
+                        Sign In
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/signup">
+                      <span className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200">
+                        Sign Up
+                      </span>
+                    </Link>
+                  </li>
+                </>
               )}
             </ul>
           </nav>

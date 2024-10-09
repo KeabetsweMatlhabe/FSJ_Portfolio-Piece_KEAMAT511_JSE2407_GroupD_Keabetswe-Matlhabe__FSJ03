@@ -1,4 +1,4 @@
-import { db } from '../../../firebaseConfig'; 
+import { db } from '../../../firebaseConfig'; // Ensure the path is correct
 import { collection, getDocs } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
@@ -12,7 +12,7 @@ export async function GET(req) {
 
   try {
     // Fetch categories from Firestore
-    const categoriesRef = collection(db, 'categories , allCategories');
+    const categoriesRef = collection(db, 'categories');
     const categoriesSnapshot = await getDocs(categoriesRef);
     const categories = categoriesSnapshot.docs[0].data().categories || [];
 

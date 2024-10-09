@@ -13,9 +13,9 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-gray-800 text-white p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        {user ? (
+    <nav className="">
+      <div className="">
+        {/* {user ? (
           <>
             <span>Welcome, {user.email}</span>
             <button
@@ -27,7 +27,7 @@ export default function Navbar() {
           </>
         ) : (
           <a href="/auth/signin" className="text-white hover:text-gray-400">Sign In</a>
-        )}
+        )} */}
       </div>
     </nav>
   );

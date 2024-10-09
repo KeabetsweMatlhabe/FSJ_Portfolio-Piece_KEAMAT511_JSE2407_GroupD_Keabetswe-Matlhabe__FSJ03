@@ -37,7 +37,10 @@ export async function fetchCategories() {
   try {
     const response = await fetch(`/api/categories`);
     if (!response.ok) {
-      throw new Error('Failed to fetch categories');
+      const errorBody = await response.text();
+      console.error('Response status:', response.status);
+      console.error('Response body:', errorBody);
+      throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
     }
     return await response.json();
   } catch (error) {

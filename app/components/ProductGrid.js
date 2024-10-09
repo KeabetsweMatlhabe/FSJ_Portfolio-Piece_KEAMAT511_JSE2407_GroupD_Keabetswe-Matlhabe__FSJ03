@@ -14,12 +14,17 @@ export default function ProductGrid() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 20;
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]); // Ensure categories is initialized as an empty array
 
   // Fetch product categories
   const fetchCategoriesData = async () => {
-    const data = await fetchCategories();
-    setCategories(data);
+    try {
+      const data = await fetchCategories();
+      setCategories(data.categories || []); // Ensure categories is an array
+    } catch (err) {
+      setError('Failed to fetch categories');
+      setCategories([]); // Fallback to empty array on error
+    }
   };
 
   // Fetch products with filters
@@ -29,11 +34,11 @@ export default function ProductGrid() {
       const data = await fetchProducts({
         search: searchTerm,
         category,
-        sort: sortOption,
+        sort: sortOption !== 'default' ? sortOption : '', // Send an empty string if the default option is selected
         page: currentPage,
         limit: itemsPerPage,
       });
-      setProducts(data.products || []);
+      setProducts(data.products || []); // Ensure products is an array
       setTotalPages(data.totalPages || 1);  // Ensure this value is returned from the API
     } catch (err) {
       setError('Failed to fetch products');
@@ -42,6 +47,7 @@ export default function ProductGrid() {
     }
   };
 
+  // Fetch categories and products when the component mounts or filters change
   useEffect(() => {
     fetchCategoriesData();
     fetchFilteredProducts();
@@ -52,30 +58,34 @@ export default function ProductGrid() {
       <h2 className="text-2xl font-bold mb-6">All Products</h2>
 
       {/* Filter and search inputs */}
-      <div className="mb-4">
+      <div className="mb-4 flex space-x-2">
         <input
           type="text"
           placeholder="Search products..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="border p-2 rounded-md"
+          className="border p-2 rounded-md flex-grow"
         />
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="border p-2 rounded-md ml-2"
+          className="border p-2 rounded-md"
         >
           <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
+          {categories.length > 0 ? (
+            categories.map((cat) => (
+              <option key={cat.id} value={cat.name}>
+                {cat.name}
+              </option>
+            ))
+          ) : (
+            <option disabled>Loading Categories...</option>
+          )}
         </select>
         <select
           value={sortOption}
           onChange={(e) => setSortOption(e.target.value)}
-          className="border p-2 rounded-md ml-2"
+          className="border p-2 rounded-md"
         >
           <option value="default">Sort by</option>
           <option value="price-asc">Price: Low to High</option>
