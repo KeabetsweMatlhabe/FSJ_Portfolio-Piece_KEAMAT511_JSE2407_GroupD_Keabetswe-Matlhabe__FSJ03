@@ -1,9 +1,9 @@
 // context/authContext.js
-"use client"; // This line makes this file a Client Component
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../firebaseConfig'; // Adjust the path if necessary
-import { onAuthStateChanged } from 'firebase/auth';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebaseConfig';  // Ensure this path is correct
 
 const AuthContext = createContext();
 
@@ -11,15 +11,20 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser ? currentUser : null);
     });
 
     return () => unsubscribe();
   }, []);
 
   const logout = async () => {
-    await auth.signOut();
+    try {
+      await signOut(auth);
+      setUser(null);  // Clear user state after sign out
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return (

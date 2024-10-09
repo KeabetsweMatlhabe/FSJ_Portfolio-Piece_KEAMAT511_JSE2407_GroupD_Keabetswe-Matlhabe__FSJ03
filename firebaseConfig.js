@@ -2,7 +2,6 @@ import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -12,17 +11,13 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 };
 
-// Initialize Firebase app
-// let app;
-// if (getApps().length === 0) {
-//   app = initializeApp(firebaseConfig);
-// } else {
-//   app = getApps()[0];
-// }
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApps()[0];
+}
 
-let app = initializeApp(firebaseConfig);
-
-// Export Firestore and Auth instances
 const db = getFirestore(app);
 const auth = getAuth(app);
 

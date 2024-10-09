@@ -1,7 +1,7 @@
 // app/components/Navbar.js
 "use client"; 
 
-import { useAuth } from '../../context/authContext'; // Ensure the path is correct
+import { useAuth } from '../../context/authContext';  // Ensure the path is correct
 
 export default function Navbar() {
   const { user, logout } = useAuth();
