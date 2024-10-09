@@ -1,8 +1,7 @@
-import { db } from '../../../firebaseConfig'; // Ensure the path is correct
+import { db } from '../../../firebaseConfig'; 
 import { collection, getDocs } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
-// Handle GET request
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get('page')) || 1;
@@ -11,15 +10,16 @@ export async function GET(req) {
   const category = searchParams.get('category') || '';
   const sort = searchParams.get('sort') || '';
 
-  const productsRef = collection(db, 'products');
-
   try {
-    // Fetch all products to extract categories
-    const allProductsSnapshot = await getDocs(productsRef);
-    let products = allProductsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    // Fetch categories from Firestore
+    const categoriesRef = collection(db, 'categories , allCategories');
+    const categoriesSnapshot = await getDocs(categoriesRef);
+    const categories = categoriesSnapshot.docs[0].data().categories || [];
 
-    // Extract unique categories
-    const categories = [...new Set(products.map(product => product.category))];
+    // Fetch products
+    const productsRef = collection(db, 'products');
+    const productsSnapshot = await getDocs(productsRef);
+    let products = productsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     // Filter by category if provided
     if (category) {
@@ -33,11 +33,11 @@ export async function GET(req) {
       );
     }
 
-    // Sort products by price if sort option is provided
+    // Sort products by price
     if (sort === 'price-asc') {
-      products = products.sort((a, b) => a.price - b.price);
+      products.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
     } else if (sort === 'price-desc') {
-      products = products.sort((a, b) => b.price - a.price);
+      products.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
     }
 
     // Pagination logic
@@ -46,11 +46,10 @@ export async function GET(req) {
     const offset = (page - 1) * limit;
     const paginatedProducts = products.slice(offset, offset + limit);
 
-    // Return the paginated products and available categories
-    return NextResponse.json({ 
-      products: paginatedProducts, 
-      totalPages, 
-      categories  // Send categories to the frontend
+    return NextResponse.json({
+      products: paginatedProducts,
+      totalPages,
+      categories
     });
   } catch (error) {
     console.error('Error fetching products and categories:', error);
