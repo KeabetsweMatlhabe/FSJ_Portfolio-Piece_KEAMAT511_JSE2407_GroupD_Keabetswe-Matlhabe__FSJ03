@@ -14,11 +14,11 @@ export default function Header() {
           <div className="flex items-center space-x-3">
             <Link href="/">
               <Image
-                // src="/logo.png"
-                // alt="Store Logo"
-                // width={40}
-                // height={40}
-                // className="rounded-full border-2 border-white"
+                 src="/logo.jpg"
+                 alt="Store Logo"
+                 width={40}
+                 height={40}
+                className="rounded-full border-2 border-white"
               />
             </Link>
             <Link href="/">
