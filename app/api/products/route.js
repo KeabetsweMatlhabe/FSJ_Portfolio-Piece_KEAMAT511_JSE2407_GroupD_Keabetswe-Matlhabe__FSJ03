@@ -1,58 +1,49 @@
-import { db } from '../../../firebaseConfig'; // Ensure the path is correct
-import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../../firebaseConfig';
+import { collection, query, getDocs, limit, where, orderBy } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get('page')) || 1;
-  const limit = parseInt(searchParams.get('limit')) || 20;
+  const limitParam = parseInt(searchParams.get('limit')) || 20;
   const search = searchParams.get('search') || '';
   const category = searchParams.get('category') || '';
   const sort = searchParams.get('sort') || '';
 
   try {
-    // Fetch categories from Firestore
-    const categoriesRef = collection(db, 'categories');
-    const categoriesSnapshot = await getDocs(categoriesRef);
-    const categories = categoriesSnapshot.docs[0].data().categories || [];
-
-    // Fetch products
     const productsRef = collection(db, 'products');
-    const productsSnapshot = await getDocs(productsRef);
-    let products = productsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    let q = query(productsRef, limit(limitParam));
 
-    // Filter by category if provided
+    // Apply category filter if provided
     if (category) {
-      products = products.filter((product) => product.category === category);
+      q = query(productsRef, where('category', '==', category), limit(limitParam));
     }
 
-    // Apply search filtering if search term is provided
+    // Apply search filtering by product title
     if (search) {
-      products = products.filter((product) =>
-        product.title.toLowerCase().includes(search.toLowerCase())
-      );
+      q = query(productsRef, where('title', '>=', search), where('title', '<=', search + '\uf8ff'), limit(limitParam));
     }
 
-    // Sort products by price
+    // Apply sorting by price if requested
     if (sort === 'price-asc') {
-      products.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+      q = query(productsRef, orderBy('price', 'asc'), limit(limitParam));
     } else if (sort === 'price-desc') {
-      products.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+      q = query(productsRef, orderBy('price', 'desc'), limit(limitParam));
     }
 
-    // Pagination logic
-    const totalProducts = products.length;
-    const totalPages = Math.ceil(totalProducts / limit);
-    const offset = (page - 1) * limit;
-    const paginatedProducts = products.slice(offset, offset + limit);
+    // Fetch products with pagination
+    const productsSnapshot = await getDocs(q);
+    const products = productsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    return NextResponse.json({
-      products: paginatedProducts,
-      totalPages,
-      categories
-    });
+    // Pagination calculation
+    const totalProducts = products.length;
+    const totalPages = Math.ceil(totalProducts / limitParam);
+    const offset = (page - 1) * limitParam;
+    const paginatedProducts = products.slice(offset, offset + limitParam);
+
+    return NextResponse.json({ products: paginatedProducts, totalPages });
   } catch (error) {
-    console.error('Error fetching products and categories:', error);
-    return NextResponse.json({ message: 'Error fetching products and categories', error: error.message }, { status: 500 });
+    console.error('Error fetching products:', error);
+    return NextResponse.json({ message: 'Error fetching products', error: error.message }, { status: 500 });
   }
 }

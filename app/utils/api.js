@@ -1,4 +1,10 @@
 // utils/api.js
+
+// Utility function to format ID as three digits
+const formatId = (id) => {
+  return id.toString().padStart(3, '0');
+};
+
 export const fetchProducts = async ({ page = 1, limit = 20, search = '', category = '', sort = '' }) => {
   try {
     const params = new URLSearchParams({
@@ -24,14 +30,22 @@ export const fetchProducts = async ({ page = 1, limit = 20, search = '', categor
     }
 
     const data = await response.json();
-    return data;
+    
+    // Format the product IDs
+    const formattedProducts = data.products.map(product => ({
+      ...product,
+      id: formatId(product.id), // Format the ID
+    }));
+
+    return {
+      products: formattedProducts,
+      totalPages: data.totalPages,
+    };
   } catch (error) {
     console.error('Error fetching products:', error);
     return { products: [], totalPages: 1 };
   }
 };
-
-
 
 export async function fetchCategories() {
   try {
@@ -50,6 +64,7 @@ export async function fetchCategories() {
 }
 
 export async function fetchProductById(id) {
+  console.log(`Fetching product with ID: ${id}`);
   try {
     const response = await fetch(`/api/products/${id}`);
     if (!response.ok) {
@@ -61,3 +76,4 @@ export async function fetchProductById(id) {
     throw error;
   }
 }
+
