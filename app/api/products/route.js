@@ -1,6 +1,6 @@
 // pages/api/products.js
 import { db } from '../../../firebaseConfig';
-import { collection, getDocs, limit, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import Fuse from 'fuse.js';
 import { NextResponse } from 'next/server';
 
@@ -33,10 +33,15 @@ export async function GET(req) {
     }
 
     // Apply sorting if requested
-    if (sort === 'price-asc') {
-      products.sort((a, b) => a.price - b.price);
-    } else if (sort === 'price-desc') {
-      products.sort((a, b) => b.price - a.price);
+    if (sort) {
+      products.sort((a, b) => {
+        if (sort === 'price-asc') {
+          return a.price - b.price; // Sort ascending
+        } else if (sort === 'price-desc') {
+          return b.price - a.price; // Sort descending
+        }
+        return 0; // Default no sorting
+      });
     }
 
     // Pagination calculation
@@ -45,6 +50,7 @@ export async function GET(req) {
     const offset = (page - 1) * limitParam;
     const paginatedProducts = products.slice(offset, offset + limitParam);
 
+    // Return the filtered, sorted, and paginated results
     return NextResponse.json({ products: paginatedProducts, totalProducts, totalPages });
   } catch (error) {
     console.error('Error fetching products:', error);
