@@ -32,7 +32,7 @@ export default async function Home({ searchParams }) {
         <Navbar />
         <div>
           <h2>Oops! Something went wrong.</h2>
-          <p>Were having trouble loading the products. Please try again later.</p>
+          <p>We&apos;re having trouble loading the products. Please try again later.</p>
         </div>
       </Layout>
     );
