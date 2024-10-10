@@ -1,5 +1,7 @@
+// pages/api/products.js
 import { db } from '../../../firebaseConfig';
-import { collection, query, getDocs, limit, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, limit, where, orderBy } from 'firebase/firestore';
+import Fuse from 'fuse.js';
 import { NextResponse } from 'next/server';
 
 export async function GET(req) {
@@ -12,28 +14,30 @@ export async function GET(req) {
 
   try {
     const productsRef = collection(db, 'products');
-    let q = query(productsRef, limit(limitParam));
+    let productsSnapshot = await getDocs(productsRef);
+    let products = productsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     // Apply category filter if provided
     if (category) {
-      q = query(productsRef, where('category', '==', category), limit(limitParam));
+      products = products.filter(product => product.category === category);
     }
 
-    // Apply search filtering by product title
+    // Implement searching with Fuse.js
     if (search) {
-      q = query(productsRef, where('title', '>=', search), where('title', '<=', search + '\uf8ff'), limit(limitParam));
+      const fuse = new Fuse(products, {
+        keys: ['title'],
+        includeScore: true,
+      });
+      const searchResults = fuse.search(search);
+      products = searchResults.map(result => result.item);
     }
 
-    // Apply sorting by price if requested
+    // Apply sorting if requested
     if (sort === 'price-asc') {
-      q = query(productsRef, orderBy('price', 'asc'), limit(limitParam));
+      products.sort((a, b) => a.price - b.price);
     } else if (sort === 'price-desc') {
-      q = query(productsRef, orderBy('price', 'desc'), limit(limitParam));
+      products.sort((a, b) => b.price - a.price);
     }
-
-    // Fetch products with pagination
-    const productsSnapshot = await getDocs(q);
-    const products = productsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     // Pagination calculation
     const totalProducts = products.length;
@@ -41,7 +45,7 @@ export async function GET(req) {
     const offset = (page - 1) * limitParam;
     const paginatedProducts = products.slice(offset, offset + limitParam);
 
-    return NextResponse.json({ products: paginatedProducts, totalPages });
+    return NextResponse.json({ products: paginatedProducts, totalProducts, totalPages });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json({ message: 'Error fetching products', error: error.message }, { status: 500 });

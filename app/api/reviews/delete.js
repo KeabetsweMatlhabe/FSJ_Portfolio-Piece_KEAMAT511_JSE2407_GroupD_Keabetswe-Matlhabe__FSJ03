@@ -1,6 +1,6 @@
 import { db } from '../../../firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { verifyIdToken } from '../../../utils/auth';
+import { verifyIdToken } from '../../utils/auth';
 
 export default async function handler(req, res) {
   if (req.method === 'DELETE') {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       // Fetch the product's reviews
       const productRef = doc(db, 'products', productId);
       const productSnapshot = await getDoc(productRef);
-      const reviews = productSnapshot.data().reviews;
+      const reviews = productSnapshot.data()?.reviews || [];
 
       // Filter out the review to delete
       const updatedReviews = reviews.filter(

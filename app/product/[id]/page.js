@@ -68,7 +68,7 @@ export default function ProductDetailPage({ params }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <Link
-        href="/product"
+        href="/"
         className="inline-block mb-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
       >
         Back to Products

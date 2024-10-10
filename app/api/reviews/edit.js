@@ -1,6 +1,6 @@
 import { db } from '../../../firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { verifyIdToken } from '../../../utils/auth';
+import { verifyIdToken } from '../../utils/auth';
 
 export default async function handler(req, res) {
   if (req.method === 'PUT') {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       // Fetch the product's reviews
       const productRef = doc(db, 'products', productId);
       const productSnapshot = await getDoc(productRef);
-      const reviews = productSnapshot.data().reviews;
+      const reviews = productSnapshot.data()?.reviews || [];
 
       // Find and update the review
       const updatedReviews = reviews.map((review) =>
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       // Update the product document with the new reviews array
       await updateDoc(productRef, { reviews: updatedReviews });
 
-      return res.status(200).json({ message: 'Review updated successfully' });
+      return res.status(200).json({ message: 'Review updated successfully', review: { rating: newRating, comment: newComment } });
     } catch (error) {
       console.error('Error updating review:', error);
       return res.status(500).json({ message: 'Failed to update review', error: error.message });

@@ -2,7 +2,7 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { signOut } from 'firebase/auth';
-import admin from './firebaseAdminConfig';
+// import admin from '../../../firebaseAdminConfig';
 
 export const signUp = async (email, password) => {
   try {

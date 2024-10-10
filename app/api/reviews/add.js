@@ -1,7 +1,7 @@
 import { db } from '../../../firebaseConfig';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { getAuth } from 'firebase-admin/auth';
-import { verifyIdToken } from '../../../utils/auth'; // Helper to verify Firebase ID tokens
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique review ID
+import { verifyIdToken } from '../../utils/auth';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -11,15 +11,15 @@ export default async function handler(req, res) {
     try {
       // Verify user authentication
       const decodedToken = await verifyIdToken(idToken);
-
       if (!decodedToken) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
       const { email, name } = decodedToken;
 
-      // Prepare the review data
+      // Prepare the review data with a unique ID
       const review = {
+        id: uuidv4(), // Generate unique ID for the review
         rating,
         comment,
         date: new Date().toISOString(),
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
         reviews: arrayUnion(review),
       });
 
-      return res.status(200).json({ message: 'Review added successfully' });
+      return res.status(200).json({ message: 'Review added successfully', review });
     } catch (error) {
       console.error('Error adding review:', error);
       return res.status(500).json({ message: 'Failed to add review', error: error.message });
