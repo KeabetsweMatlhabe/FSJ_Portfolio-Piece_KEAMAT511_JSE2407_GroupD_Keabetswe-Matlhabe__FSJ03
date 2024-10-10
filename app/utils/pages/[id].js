@@ -13,9 +13,15 @@ const ProductDetail = () => {
       fetchProductById(id).then((data) => setProduct(data));
     }
   }, [id]);
-
-  if (!product) return <p>Loading...</p>;
-
+  
+  const handleNewReview = async () => {
+    const updatedProduct = await fetchProductById(id); // Fetch updated reviews
+    setProduct(updatedProduct);
+  };
+  
+  // Pass handleNewReview to ReviewForm to trigger when a new review is added
+//   <ReviewForm productId={id} onReviewAdded={handleNewReview} />
+  
   return (
     <div>
       {/* Product Details */}
@@ -39,7 +45,7 @@ const ProductDetail = () => {
         )}
 
         {/* Review Form */}
-        <ReviewForm productId={id} /> {/* Place the form here */}
+        <ReviewForm productId={id} onReviewAdded={handleNewReview}  /> {/* Place the form here */}
       </div>
     </div>
   );

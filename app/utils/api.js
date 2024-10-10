@@ -76,4 +76,21 @@ export async function fetchProductById(id) {
     throw error;
   }
 }
+export const addReviewToProduct = async (productId, reviewData) => {
+  const token = await getAuth().currentUser.getIdToken(); // Get Firebase ID token
+  const response = await fetch(`/api/review/add`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ productId, ...reviewData }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to add review');
+  }
+
+  return await response.json();
+};
 

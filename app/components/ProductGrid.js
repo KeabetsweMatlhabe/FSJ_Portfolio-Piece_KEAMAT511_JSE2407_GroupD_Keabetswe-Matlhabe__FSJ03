@@ -14,7 +14,7 @@ export default function ProductGrid() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 20;
-  const [categories, setCategories] = useState([]); // Ensure categories is initialized as an empty array
+  const [categories, setCategories] = useState([]);
 
   // Fetch product categories
   const fetchCategoriesData = async () => {
@@ -27,27 +27,28 @@ export default function ProductGrid() {
     }
   };
 
-  // Fetch products with filters
+  // Fetch filtered products
   const fetchFilteredProducts = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
       const data = await fetchProducts({
-        search: searchTerm,
+        searchTerm,
         category,
-        sort: sortOption !== 'default' ? sortOption : '', // Send an empty string if the default option is selected
+        sortOption,
         page: currentPage,
         limit: itemsPerPage,
       });
-      setProducts(data.products || []); // Ensure products is an array
-      setTotalPages(data.totalPages || 1);  // Ensure this value is returned from the API
+      setProducts(data.products || []);
+      setTotalPages(data.totalPages || 1); // Set total pages based on API response
     } catch (err) {
       setError('Failed to fetch products');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch categories and products when the component mounts or filters change
   useEffect(() => {
     fetchCategoriesData();
     fetchFilteredProducts();
@@ -58,34 +59,30 @@ export default function ProductGrid() {
       <h2 className="text-2xl font-bold mb-6">All Products</h2>
 
       {/* Filter and search inputs */}
-      <div className="mb-4 flex space-x-2">
+      <div className="mb-4">
         <input
           type="text"
           placeholder="Search products..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="border p-2 rounded-md flex-grow"
+          className="border p-2 rounded-md"
         />
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="border p-2 rounded-md"
+          className="border p-2 rounded-md ml-2"
         >
           <option value="">All Categories</option>
-          {categories.length > 0 ? (
-            categories.map((cat) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))
-          ) : (
-            <option disabled>Loading Categories...</option>
-          )}
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
         </select>
         <select
           value={sortOption}
           onChange={(e) => setSortOption(e.target.value)}
-          className="border p-2 rounded-md"
+          className="border p-2 rounded-md ml-2"
         >
           <option value="default">Sort by</option>
           <option value="price-asc">Price: Low to High</option>
