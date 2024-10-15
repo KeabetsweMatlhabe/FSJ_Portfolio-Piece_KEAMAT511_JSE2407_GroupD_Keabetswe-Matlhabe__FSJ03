@@ -6,6 +6,9 @@ export default function RootLayout({ children }) {
   return (
     <AuthProvider>
       <html lang="en">
+        <head>
+          <link rel="icon" href="/logo.jpg" type="logo/jpg"></link>
+        </head>
         <body>{children}</body>
       </html>
     </AuthProvider>
