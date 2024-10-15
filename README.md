@@ -50,6 +50,7 @@ NEXT_PUBLIC_MESSAGING_SENDER_ID=your-messaging-sender-id
 NEXT_PUBLIC_APP_ID=your-app-id
 Hosted Application
 You can view the live application at https://fsj-portfolio-piece-keamat-511-jse-2407-group-d-keab-5o6s8tk55.vercel.app .
+Vercel Deployment: https://vercel.com/keabetswes-projects/fsj-portfolio-piece-keamat-511-jse-2407-group-d-keabetswe-matlhabe-fsj-03-zro2?status=building%2Cerror%2Cinitializing%2Cqueued%2Cready
 
 ## Features
 - Offline Support: The application caches data locally, allowing users to interact even without an internet connection.
