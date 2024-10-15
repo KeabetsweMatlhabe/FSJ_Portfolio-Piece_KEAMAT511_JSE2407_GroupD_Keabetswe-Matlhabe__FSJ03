@@ -94,3 +94,64 @@ export const addReviewToProduct = async (productId, reviewData) => {
   return await response.json();
 };
 
+// utils/api.js
+
+// Add a new review
+// export const addReviewToProduct = async (productId, reviewData) => {
+//   try {
+//     const response = await fetch(`/api/reviews/add`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({ productId, ...reviewData }),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error('Failed to add the review');
+//     }
+
+//     return await response.json();
+//   } catch (error) {
+//     throw new Error(error.message || 'Failed to add the review');
+//   }
+// };
+
+// Update an existing review
+export const updateReview = async (productId, reviewId, reviewData) => {
+  try {
+    const response = await fetch(`/api/reviews/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId, reviewId, ...reviewData }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update the review');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw new Error(error.message || 'Failed to update the review');
+  }
+};
+
+// Delete a review
+export async function deleteReview(reviewId) {
+  try {
+    const response = await fetch(`/api/reviews/${reviewId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete the review');
+    }
+
+    return await response.json(); // or response.text() depending on the API response
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    throw error;
+  }
+}

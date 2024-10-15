@@ -1,10 +1,11 @@
+// [id]/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchProductById } from '../../utils/api';
-import ReviewForm from '../../components/ReviewForm'; // Import the ReviewForm component
+import ReviewForm from '../../components/ReviewForm';
 
 export default function ProductDetailPage({ params }) {
   const [product, setProduct] = useState(null);
@@ -21,6 +22,10 @@ export default function ProductDetailPage({ params }) {
       setError('Failed to fetch product details');
       setProduct(null);
     }
+  };
+
+  const refreshReviews = () => {
+    fetchProductDetails(); // Re-fetch the product details, including reviews
   };
 
   useEffect(() => {
@@ -74,11 +79,16 @@ export default function ProductDetailPage({ params }) {
             <div className="font-semibold">{review.reviewerName} ({review.rating}/5)</div>
             <div className="mt-2">{review.comment}</div>
             <div className="text-sm text-gray-500 mt-1">{new Date(review.date).toLocaleDateString()}</div>
+            <ReviewForm
+              productId={id}
+              refreshReviews={refreshReviews}
+              existingReview={review} // Pass the existing review for editing
+            />
           </div>
         ))}
       </div>
 
-      <ReviewForm productId={id} />
+      <ReviewForm productId={id} refreshReviews={refreshReviews} />
     </div>
   );
 }

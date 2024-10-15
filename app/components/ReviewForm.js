@@ -1,9 +1,13 @@
+// ReviewForm.js
 import { useState } from 'react';
-import { getAuth } from 'firebase/auth'; // Import Firebase Auth
-import { addReviewToProduct } from '../utils/api'; // Import API helper for adding reviews
+import { getAuth } from 'firebase/auth';
+import { addReviewToProduct, updateReview, deleteReview } from '../utils/api'; // Import API helpers
 
-const ReviewForm = ({ productId }) => {
-  const [review, setReview] = useState({ rating: 0, comment: '' });
+const ReviewForm = ({ productId, refreshReviews, existingReview }) => {
+  const [review, setReview] = useState({
+    rating: existingReview?.rating || 0,
+    comment: existingReview?.comment || '',
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -19,7 +23,7 @@ const ReviewForm = ({ productId }) => {
     e.preventDefault();
 
     const auth = getAuth();
-    const user = auth.currentUser; // Get the logged-in user
+    const user = auth.currentUser;
 
     if (!user) {
       setMessage('You must be logged in to submit a review.');
@@ -36,12 +40,34 @@ const ReviewForm = ({ productId }) => {
 
     setLoading(true);
     try {
-      await addReviewToProduct(productId, reviewData);
-      setMessage('Review added successfully!');
-      setReview({ rating: 0, comment: '' }); // Reset form
+      if (existingReview) {
+        // Update review
+        await updateReview(productId, existingReview.id, reviewData);
+        setMessage('Review updated successfully!');
+      } else {
+        // Add new review
+        await addReviewToProduct(productId, reviewData);
+        setMessage('Review added successfully!');
+      }
+      setReview({ rating: 0, comment: '' });
+      refreshReviews(); // Refresh the review list
     } catch (error) {
-      setMessage('Failed to add review. Please try again.');
-      console.error('Error adding review:', error);
+      setMessage('Failed to submit review. Please try again.');
+      console.error('Error submitting review:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await deleteReview(productId, existingReview.id);
+      setMessage('Review deleted successfully!');
+      refreshReviews(); // Refresh the review list
+    } catch (error) {
+      setMessage('Failed to delete review. Please try again.');
+      console.error('Error deleting review:', error);
     } finally {
       setLoading(false);
     }
@@ -49,7 +75,7 @@ const ReviewForm = ({ productId }) => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h3 className="text-lg font-semibold mb-4 text-gray-700">Leave a Review</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-700">{existingReview ? 'Edit Review' : 'Leave a Review'}</h3>
       {message && (
         <p className={`mb-4 ${message.includes('successfully') ? 'text-green-500' : 'text-red-500'}`}>
           {message}
@@ -93,8 +119,18 @@ const ReviewForm = ({ productId }) => {
             loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
           }`}
         >
-          {loading ? 'Submitting...' : 'Submit Review'}
+          {loading ? 'Submitting...' : existingReview ? 'Update Review' : 'Submit Review'}
         </button>
+        {existingReview && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading}
+            className="w-full mt-2 py-2 px-4 rounded-md text-white bg-red-600 hover:bg-red-700"
+          >
+            Delete Review
+          </button>
+        )}
       </form>
     </div>
   );
